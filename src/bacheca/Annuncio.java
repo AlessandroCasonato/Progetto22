@@ -1,7 +1,9 @@
 package bacheca;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
-public class Annunci {
+public class Annuncio {
 	
 	//Caratteristiche annuncio
 	private String nomeOggetto;
@@ -10,11 +12,11 @@ public class Annunci {
 	private int prezzo;
 	private ArrayList<String> paroleChiave;
 	private int ID;
-	private char type; 
+	private char type;
+	private LocalDate scadenza;
 	
-	//Costruttore annunci
-	public Annunci(char T, String nomeOggetto, Utente u, int qnt, int prezzo, int ID, String... paroleChiave) throws FormatException{
 
+	public Annuncio(char T, String nomeOggetto, Utente u, int qnt, int prezzo, int ID, String scadenza, String... paroleChiave) throws FormatException{
 		this.type = T;
 		this.nomeOggetto = nomeOggetto;
 		this.utente = u;
@@ -22,11 +24,12 @@ public class Annunci {
 		this.prezzo = prezzo;
 		this.ID = ID;		
 		this.paroleChiave = new ArrayList<String>();
+		this.scadenza = scadenza != "" ? LocalDate.parse(scadenza, DateTimeFormatter.ofPattern("dd-MM-yyyy")) : LocalDate.now().plusMonths(1);
 		
 		for (String parola : paroleChiave)
 			this.paroleChiave.add(parola);
 		}
-	
+
 	
 	//Restituisce il tipo di annuncio (Compro o vendo?)
 	public char getT() {
@@ -54,8 +57,26 @@ public class Annunci {
 	}
 		
 	//Restituisce l'Email identificativa di chi ha inserito l'annuncio
-	public String getNomeUtente() {
+	public String getEmailUtente() {
 		return this.utente.getEmail();
+	}
+	
+	//Restituisce la data di scadenza dell'annuncio
+	public LocalDate getScadenza() {
+		return this.scadenza;
+	}
+	
+	public boolean setScadenza(String dataScadenza) {
+		try
+		{
+			this.scadenza = LocalDate.parse(dataScadenza);
+			return true;
+		}
+		catch (Exception ex)
+		{
+			return false;
+		}
+		
 	}
 
 	//Setta le parole chiave
@@ -75,7 +96,7 @@ public class Annunci {
 	
 	//Restituisce annuncio sotto forma di stringa
 	public String toString() {
-		return ( type+","+nomeOggetto+","+utente.getNome()+","+utente.getEmail()+","+quantita+","+prezzo+","+ID+","+this.listaParole());
+		return ( type+","+nomeOggetto+","+utente.getNome()+","+utente.getEmail()+","+quantita+","+prezzo+","+ID+"," +scadenza.toString()+ ","+this.listaParole());
 	}
 
 }

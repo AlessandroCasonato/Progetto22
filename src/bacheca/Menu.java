@@ -14,25 +14,25 @@ public class Menu {
 		//Inizio a creare il menu destinato all'utente finale per creare e gestire utenti e bacheca
 		while(risp!=3){			
 			try{
-				while((risp!=1) && (risp !=2)&& (risp != 3)){
-					risp = Input.readInt("====================\nScegli:\n1)Gestione Utenti\n2)Gestione Bacheca\n3)ESCI\n");
-
-				if (risp==1){
+				switch(risp)
+				{
+				case 1:
 					modUtente();
 					risp=0;
-				}
-				if (risp==2){
+					break;
+				case 2:
 					String email = Input.readString("Inserisci la tua email utente: ");
-					Utente utente = Utenti.getUtente(email);
 					
-					if (Utenti.contains(email))
-							modBacheca(bach,utente);
+					if (Utenti.containsUtente(email))
+							modBacheca(bach, Utenti.getUtente(email));
 					else
 						System.out.println("Inserisci una email valida");
 					risp=0;
-				}
-				
-				if (risp==3) break;	
+					break;
+				case 3:
+					break;
+				default: 
+					risp = Input.readInt("====================\nScegli:\n1)Gestione Utenti\n2)Gestione Bacheca\n3)ESCI\n");
 				}
 			}
 			catch (NumberFormatException e){
@@ -41,8 +41,7 @@ public class Menu {
 			catch (FormatException e){
 				System.out.println("\n"+e.getMessage()+"\n");
 				risp = 0;
-			}
-			
+			}	
 		}
 		return;
 	}
@@ -51,15 +50,10 @@ public class Menu {
 	
 	//Metodo per gestire la modalità bacheca
 	private static void modBacheca(Bacheca bach, Utente u) throws NumberFormatException,FormatException, IOException
-	{
-		
+	{		
 		int modb=0;
-
-		while((modb>0)||(modb<11))
-		{
-			try
-
-			{
+		while((modb>0)||(modb<12)) {
+			try {
 				System.out.println("====================\nGestione Bacheca\n");
 				System.out.println("1) Ottieni l'elenco delle parole chiave\n"
 						+ "2) Ottieni tutti gli ID degli annunci che appartengono a determinate parole chiave\n"
@@ -70,30 +64,31 @@ public class Menu {
 						+ "7) Visualizza tutti gli annunci in bacheca\n"
 						+ "8) Leggi la bacheca da file\n"
 						+ "9) Stampa su file\n"
-						+ "10) Logout\n");
+						+ "10) Esegui cleanup annunci scaduti\n"
+						+ "11) Rimuovi una o più parole chiave e i relativi annunci\n"
+						+ "12) Aggiungi una o più parole chiave\n"
+						+ "13) Logout\n");
 				
 				modb = Input.readInt();
-				
-				if(modb==1)
+				switch(modb) {
+				case 1:
 					System.out.println(bach.paroleChiaveString());
-				if(modb==2)	{
-						String tmp = Input.readString("Scrivi un sottoinsieme di parole chiave di cui vuoi ottenere gli ID: (Separare le parole chiave con un '-' e senza spazi):\n");
-						String [] listakeys = tmp.split("-");
-						ArrayList<Integer> listID = new ArrayList<Integer>();
-						listID= bach.intersezione(listakeys);
-						System.out.println("\nLista degli id:\n"+listID.toString());
-				}
-						
-				if(modb==3)
+					break;
+				case 2:
+					String tmp = Input.readString("Scrivi un sottoinsieme di parole chiave di cui vuoi ottenere gli ID: (Separare le parole chiave con un '-' e senza spazi):\n");
+					String [] listakeys = tmp.split("-");
+					ArrayList<Integer> listID = new ArrayList<Integer>();
+					listID= bach.intersezione(listakeys);
+					System.out.println("\nLista degli id:\n"+listID.toString());
+					break;
+				case 3:
 					System.out.println("\nPropri annunci presenti in bacheca:\n"+bach.listaPropriAnnunci(u));
-				
-				if(modb==4)	{
+					break;
+				case 4:
 					int id = Input.readInt("Inserisci l'id dell'annuncio da visualizzare: ");
 					System.out.println("Annuncio: "+bach.visualizzaAnnuncio(id));
-				}
-				
-				if(modb==5)	{
-					
+					break;
+				case 5:
 					int count = 0 ;
 					String[] data = new String[7];
 					data[count++]=Input.readString("Inserisci il tipo di annuncio(V/C): ");
@@ -101,35 +96,63 @@ public class Menu {
 					data[count++]=Input.readString("Inserisci la quantita': ");
 					data[count++]=Input.readString("Inserisci il prezzo: ");
 					data[count++]=Input.readString("Inserisci l'identificatore: ");
+					data[count++]=Input.readString("Inserisci la data di scadenza nel formato dd-mm-yyyy (premere invio senza digitare nulla per scadenza tra un mese):");
 					data[count++]=Input.readString("Inserisci delle parole chiave separate da un '-' senza spazi in mezzo: ");
 
-					bach.aggiungiAnnuncio(new Annunci(data[0].charAt(0),data[1],u,Integer.parseInt(data[2]),Integer.parseInt(data[3]),Integer.parseInt(data[4]),data[5].split("-")));
-				}
-				
-				if (modb==6){
-					
+					String[] listaChiavi = data[6].split("-");
+					Boolean res = bach.aggiungiAnnuncio(new Annuncio(data[0].charAt(0),data[1],u,Integer.parseInt(data[2]),Integer.parseInt(data[3]),Integer.parseInt(data[4]), data[5], listaChiavi));
+					if (res && data[0].charAt(0) == 'C')
+					{
+						listID= bach.intersezione(listaChiavi);
+						System.out.println("\nLista degli id di annunci di acquisto con stesse parole chiave:\n"+listID.toString());
+					}
+					break;
+				case 6:	
 					int id1= Input.readInt("Inserisci l'id dell'annuncio da eliminare: ");
 					bach.rimuoviAnnuncio(id1, u);
 					System.out.println(bach.elencoAnnunci());
-				}
-				
-				if(modb==7)
+					break;
+				case 7:
 					System.out.println("ELENCO ANNUNCI:\n"+bach.elencoAnnunci());
-
-				if(modb==8)	{
-					
+					break;
+				case 8:
 					String nomeFile= Input.readString("Inserisci il nome del file da cui importare la bacheca: ");
 					bach.leggiBacheca(nomeFile);
 					System.out.println("ELENCO ANNUNCI:\n"+bach.elencoAnnunci());
-				}
-
-				if(modb==9)	{
-					String nomeFile= Input.readString("Inserisci il nome del file su cui scrivere la bacheca: ");
+					break;
+				case 9:
+					nomeFile= Input.readString("Inserisci il nome del file su cui scrivere la bacheca: ");
 					bach.scriviBacheca(nomeFile);
 					System.out.println("Bacheca scritta con successo!\n");
+					break;
+				case 10:
+					bach.cleanupAnnunciScaduti();
+					System.out.println("ELENCO ANNUNCI DOPO CLEANUP:\n"+bach.elencoAnnunci());
+					break;
+				case 11:
+					ArrayList<String> paroleChiave = new ArrayList<String>();
+					String inputParola = "";
+					do {
+						inputParola = Input.readString("Inserisci una parola chiave da cercare, o premi invio senza inserire nulla per proseguire: ");
+						paroleChiave.add(inputParola);
+					} while (inputParola != "");
+					bach.rimozioneAnnunciPerParoleChiave(paroleChiave);
+					System.out.println("ELENCO ANNUNCI DOPO RIMOZIONE PER PAROLA CHIAVE:\n"+bach.elencoAnnunci());
+					break;
+				case 12:
+					paroleChiave = new ArrayList<String>();
+					inputParola = "";
+					do {
+						inputParola = Input.readString("Inserisci una parola chiave da cercare, o premi invio senza inserire nulla per proseguire: ");
+						paroleChiave.add(inputParola);
+					} while (inputParola != "");
+					bach.aggiungiParoleChiave(paroleChiave);
+					System.out.println("ELENCO PAROLE CHIAVE DOPO AGGIUNTA:\n"+bach.paroleChiaveString());
+					break;
+				default:
+					break;
 				}
-				if(modb==10 )return;
-				}
+			}
 			catch (FormatException e)
 			{
 				System.out.println("\n"+e.getMessage()+"!!!\n---------------");
@@ -146,9 +169,7 @@ public class Menu {
 			{
 				System.out.println("\nFile non trovato o formato file non adeguato!");
 			}
-		}
-
-		
+		}	
 	}
 	
 	
@@ -156,7 +177,6 @@ public class Menu {
 	private static void modUtente ()
 	{
 		int modu=0;
-		
 		while((modu!=2)||(modu!=1)){
 			try{
 				System.out.println("Gestione utenti\n");

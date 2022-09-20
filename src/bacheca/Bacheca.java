@@ -1,51 +1,49 @@
 package bacheca;
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class Bacheca {
-	
-	private ArrayList<Annunci> annunci;	//Lista di oggetti annunci
-	final int MAX_DIM=3;		//Numero massimo degli annunci		
-
-	//Lista di oggetti stringa contenente le parole chiave
-	protected static ArrayList<String> parole = new ArrayList<String>();
-	static{
-		parole.add("Abbigliamento");
-		parole.add("Alimentari");
-		parole.add("Altro");
-		parole.add("Arredamento");
-		parole.add("Auto");
-		parole.add("Bellezza");
-		parole.add("Casa");
-		parole.add("Elettronica");
-		parole.add("Film");
-		parole.add("Giardinaggio");
-		parole.add("Giochi");
-		parole.add("Gioielli");
-		parole.add("Informatica");
-		parole.add("Libri");
-		parole.add("Moto");
-		parole.add("Musica");
-		parole.add("Telefonia");
-		parole.add("Sport");
-		parole.add("Videogiochi");
-
-	}
+	final int MAX_DIM=3;											//Numero massimo degli annunci	
+	private ArrayList<Annuncio> annunci = new ArrayList<Annuncio>();	//Lista di oggetti annunci		    
+	protected ArrayList<String> parole = new ArrayList<String>(List.of(
+			"Abbigliamento", 
+			"Alimentari", 
+			"Altro", 
+			"Arredamento", 
+			"Auto", 
+			"Bellezza", 
+			"Casa", 
+			"Elettronica",
+			"Film", 
+			"Giardinaggio", 
+			"Giochi", 
+			"Gioielli", 
+			"Informatica", 
+			"Libri",
+			"Moto", 
+			"Musica", 
+			"Telefonia", 
+			"Sport", 
+			"Videogiochi" ));
 	
 	//Estendo interfaccia Iterator per scorrere e gestire lista di annunci
-	public Iterator<Annunci> iterator()
+	public Iterator<Annuncio> iterator()
 	{
 		return new IteratoreBacheca();
 	}
 	
-	private class IteratoreBacheca implements Iterator<Annunci>
+	private class IteratoreBacheca implements Iterator<Annuncio>
 	{
 		private int cursor;
 
@@ -59,32 +57,24 @@ public class Bacheca {
 			if (annunci.size()>MAX_DIM) return false;
 			return (cursor<annunci.size());
 		}
-		public Annunci next()
+		public Annuncio next()
 		{
 			if (!this.hasNext())
 				return null;
 			return annunci.get(cursor++);
 		}
-
 	}
-	
-	//Costruttore bacheca
-	public Bacheca() 
-	{
-		this.annunci = new ArrayList<Annunci>();
-	}
-	
-	
-	public void aggiungiAnnuncio(Annunci annuncio)throws FormatException	{
 
+	
+	public Boolean aggiungiAnnuncio(Annuncio annuncio)throws FormatException	{
 
 		ArrayList<String> match  = new ArrayList<String>();
 		
-		if(!(Utenti.contains(annuncio.getNomeUtente())))
+		if(!(Utenti.containsUtente(annuncio.getEmailUtente())))
 			throw new FormatException("Utente non presente");
 			
 		
-		for (Annunci tmp : this.annunci){
+		for (Annuncio tmp : this.annunci){
 			if (annuncio.getID() == tmp.getID())
 				throw new FormatException("Annuncio gia presente");
 		}
@@ -103,37 +93,46 @@ public class Bacheca {
 			}
 			annuncio.setParoleChiave(match);
 			this.annunci.add(annuncio);
+			return true;
 		}
 	}
 		
 	
-	//Restituisce parole chiave
+	/***Restituisce la lista di parole chiave
+	 * @return le parole chiave separate da trattino
+	 */
 	public String paroleChiaveString() 
 	{
 		String s = new String();
 		
 		for (String tmp : parole)
 			s+=tmp+"-";
-		return s.substring(0,s.length()-1);
+		return s;
 	}
 
-	//Cerca annunci tramite l'identificativo dell'utente
-	public ArrayList<Annunci> trovaAnnunci(Utente u) {
-		ArrayList<Annunci> risultato = new ArrayList<Annunci>();
+	/***Cerca annunci tramite l'identificativo dell'utente
+	 * @param u
+	 * @return l'insieme di annunci dell'utente
+	 */
+	public ArrayList<Annuncio> trovaAnnunci(Utente u) {
+		ArrayList<Annuncio> risultato = new ArrayList<Annuncio>();
 		
-		for (Annunci tmp : this.annunci)
-			if (tmp.getNomeUtente().equals(u.getEmail()))
+		for (Annuncio tmp : this.annunci)
+			if (tmp.getEmailUtente().equals(u.getEmail()))
 				risultato.add(tmp);
 		return risultato;
 	}
 	
-	//Restituisce gi annunci dell'utente loggato
+	/***Restituisce gi annunci dell'utente loggato
+	 * @param u
+	 * @return
+	 */
 	public String listaPropriAnnunci(Utente u){
 		
-		ArrayList <Annunci> lista = trovaAnnunci(u);
+		ArrayList <Annuncio> lista = trovaAnnunci(u);
 		String s = new String();
 		
-		for (Annunci tmp : lista){
+		for (Annuncio tmp : lista){
 			s+= tmp.toString()+("\n");
 		}
 		return s.substring(0, s.length()-1);
@@ -143,9 +142,9 @@ public class Bacheca {
 	public void rimuoviAnnuncio(int identificatore, Utente u)throws FormatException {
 		
 		for(int i=0;i<annunci.size();i++){
-			Annunci c=annunci.get(i);
+			Annuncio c=annunci.get(i);
 			
-			if(c.getID()==identificatore && u.getEmail()==c.getNomeUtente()){
+			if(c.getID()==identificatore && u.getEmail()==c.getEmailUtente()){
 				annunci.remove(c);
 				return;
 			}
@@ -156,7 +155,7 @@ public class Bacheca {
 	//Restituisce l'annuncio cercato tramite codice identificativo
 	public String visualizzaAnnuncio(int id_cercato)
 	{
-		for (Annunci c : this.annunci) {
+		for (Annuncio c : this.annunci) {
 			if (c.getID() == id_cercato) {
 				return c.toString();
 			}
@@ -170,17 +169,21 @@ public class Bacheca {
 	{
 		String s = new String();
 		
-		for(Annunci tmp : annunci)
+		for(Annuncio tmp : annunci)
 			s += tmp.toString()+"\n";
 		return s.substring(0, s.length()-1);
 	}
 	
-	//Restituisce l'identificatore di tutti gli annunci che combaciano con la parola chiave cercata dall'utente
+	/***Restituisce l'identificatore di tutti gli annunci che combaciano con la parola chiave cercata dall'utente
+	 * 
+	 * @param s
+	 * @return
+	 */
 	public ArrayList<Integer> intersezione(String ... s){
 		
 		ArrayList<Integer> array = new ArrayList<Integer>();
 		
-		for(Annunci p:this.annunci){
+		for(Annuncio p: annunci){
 			for(String c: p.getParoleChiave()){
 				for(String z:s){
 					if(!array.contains(p.getID())){
@@ -196,7 +199,8 @@ public class Bacheca {
 	
 	//Leggi e salva annunci da file.txt
 	public	void leggiBacheca(String nomeFile) throws FormatException, IOException{
-		
+		try
+		{
 			BufferedReader in = new BufferedReader(new FileReader(nomeFile));
 			String linea = in.readLine();
 			String[] dati = linea.split(",");
@@ -204,7 +208,7 @@ public class Bacheca {
 			while (linea != null) {
 				dati = linea.split(",");
 				
-				if (dati.length >= 7) {
+				if (dati.length >= 8) {
 
 					char T = dati[0].charAt(0);
 					String nomeOgg = dati[1].trim();
@@ -213,32 +217,64 @@ public class Bacheca {
 					int  qnt = Integer.parseInt(dati[4]);
 					int  prezzo= Integer.parseInt(dati[5]);
 					int  ID = Integer.parseInt(dati[6]);
-					String [] parCh = dati[7].split("-");
+					String scadenza = dati[7].trim();
+					String [] parCh = dati[8].split("-");
 					Utente u = new Utente(nomeU,emailU);
 					
-					if (!(Utenti.contains(u.getNome())))
+					if (!(Utenti.containsUtente(u.getEmail())))
 						Utenti.aggiungiUtente(u);
-					this.aggiungiAnnuncio(new Annunci(T,nomeOgg,u, qnt, prezzo,ID, parCh));
+					this.aggiungiAnnuncio(new Annuncio(T,nomeOgg,u, qnt, prezzo, ID, scadenza, parCh));
 					
 				}
 				linea = in.readLine();
 			}
-			in.close();
-		
+			in.close();	
+		}
+		catch(Exception ex)
+		{
+			System.out.println(ex.getMessage());
+		}
 	}
 	
 	//Crea un file.txt nel quale salvare gli annunci inseriti da console
 	public void scriviBacheca(String nomeFile) throws FileNotFoundException  {
-
 			PrintWriter out = new PrintWriter(new File(nomeFile));
 			out.printf(this.elencoAnnunci());
 			out.close();
-		
 	}
+	
+	public void cleanupAnnunciScaduti() 
+	{
+		annunci.removeIf(a -> a.getScadenza().isBefore(LocalDate.now()));
+	}
+	
 	
 	//Restituisce numero degli annunci
 	public int numEl(){
 		return this.annunci.size();
+	}
+
+	/*** Aggiunge una o più parole chiave alla corrispondente lista
+	 * @param paroleChiave
+	 */
+	public void aggiungiParoleChiave(ArrayList<String> paroleChiave) {
+		for (String parolaChiave : paroleChiave)
+		{
+			if(!parole.contains(parolaChiave))
+				parole.add(parolaChiave);
+		}
+	}
+
+	/*** Rimuove una o più parole chiave alla corrispondente lista, rimuovendo
+	 * ogni annuncio che la/le contiene
+	 * @param paroleChiave
+	 */
+	public void rimozioneAnnunciPerParoleChiave(ArrayList<String> paroleChiave) {
+		for (String parolaChiave : paroleChiave)
+		{
+			if (annunci.removeIf(a -> a.getParoleChiave().contains(parolaChiave.trim())))
+				parole.removeIf(a -> a.equalsIgnoreCase(parolaChiave));
+		}
 	}
 	
 }
